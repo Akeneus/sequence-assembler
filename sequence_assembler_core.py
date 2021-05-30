@@ -1,22 +1,18 @@
 from typing import List
-
 from assemble_data import AssembleData
-import igraph
-from igraph import *
-from datetime import datetime
+from igraph import Graph, plot, os
 
-# print(igraph.__version__)
-# g = Graph()
-# print(g)
-
-#1. Die einzelnen Fragmente als Knoten in einem Graphen darstellen
-#2a Gewichtete Überlappungskanten bauen, also schauen ob es Überlappungen gibt, diese dann also kante machen und gewicht anzahl der Überlappung bauen
+#1. Die einzelnen Fragmente als Knoten in einem Graphen darstellen (check)
+#2a Gewichtete Überlappungskanten bauen, also schauen ob es Überlappungen gibt, diese dann also kante machen und gewicht anzahl der Überlappung bauen (check)
 #2b Möglichkeit zu angabe einr mindest Gewichtung
-#3. Verschmelzung der Knoten mit der größten Kante
-#3b. GIERIG die erste Kannte wenn es kannten mit gleicher gewichtung gib
-#4 bereinigen der Kanten
-#5 wieder bei 3 solange es kanten gibt
-#6 fertig
+#3. Verschmelzung der Knoten mit der größten Kante (check)
+#3b. GIERIG die erste Kannte wenn es kannten mit gleicher gewichtung gib (check, aber eventuell random ?)
+#4 bereinigen der Kanten (check)
+#5 wieder bei 3 solange es kanten gibt (check)
+#6 fertig (check)
+# 7 Qualitätskontrolle ?
+# eulerpfad ?
+
 
 def main():
     path = "C:\\Users\\nlens\Documents\\sequenz-assemblerdsfasdfas\\sequence-assembler\\ressource\\frag_a.dat"
@@ -137,6 +133,5 @@ def _saveSubstrings(data:AssembleData):
         file.write(sequence+"\n") 
     file.close()
 
-# 7 Qualitätskontrolle ?
-# eulerpfad ?
+
 main()
