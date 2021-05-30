@@ -8,3 +8,5 @@ As a reference style guide, the [Google Python Style Guide](https://google.githu
 
 ## Comments and Docstrings
 As already proposed by [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) this project uses [docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)  to document the source-code
+
+
