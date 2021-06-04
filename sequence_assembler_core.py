@@ -1,6 +1,9 @@
+from posixpath import dirname
 from typing import List
 from assemble_data import AssembleData
 from igraph import Graph, plot, os
+from random import randrange
+from datetime import date
 
 #1. Die einzelnen Fragmente als Knoten in einem Graphen darstellen (check)
 #2a Gewichtete Überlappungskanten bauen, also schauen ob es Überlappungen gibt, diese dann also kante machen und gewicht anzahl der Überlappung bauen (check)
@@ -12,20 +15,24 @@ from igraph import Graph, plot, os
 #6 fertig (check)
 # 7 Qualitätskontrolle ?
 # eulerpfad ?
-
-
-def main():
-    path = "C:\\Users\\nlens\Documents\\sequenz-assemblerdsfasdfas\\sequence-assembler\\ressource\\frag_a.dat"
+minWeight = 1
+numberOfIterations = 1
+# ToDo ausführeung durch mitgabe einer frag_b datei in console
+def main(minWeight, numberOfIterations):
+    path = "ressource\\frag_a.dat"
     # path = "ressource\\frag_b.dat"
     # path = "C:\\Users\\nlens\Documents\\sequenz-assemblerdsfasdfas\\sequence-assembler\\ressource\\frag_c.dat"
-    data = _setupData(path)
-    _saveGraph(data)
-    _assemble(data)
+    minWeight = minWeight
+    numberOfIterations = numberOfIterations
+    for i in range(1,numberOfIterations+1):
+        data = _setupData(path)
+        _saveGraph(data)
+        _assemble(data)
 
 def _setupData(path) -> AssembleData:
     g = _buildGraph(path)
-    sourceDataName = path.split("\\")[-1]
-    return AssembleData(sourceDataName,g,[])
+    sourceDataPath = _buildPath(path)
+    return AssembleData(sourceDataPath,g,[])
 
 def _buildGraph(path) -> Graph:
     frag_file = open(path, 'r')
@@ -39,6 +46,7 @@ def _buildGraph(path) -> Graph:
 def _buildVertices(g:Graph,lines:List[str]) -> Graph:
     g.add_vertices(len(lines))
     g.vs["name"] = lines
+    g.vs["label_id"] = [i for i in range(len(lines))]
     return g
 
 def _buildEdges(g:Graph,lines:List[str]) -> Graph:
@@ -50,7 +58,7 @@ def _buildEdges(g:Graph,lines:List[str]) -> Graph:
         linesToCheck.remove(lineToCheck)
         for line in linesToCheck:
             matchingAffix = _checkSequence(lineToCheck, line)
-            if(matchingAffix > 1):
+            if(matchingAffix >= minWeight):
                 edge = (tmpLines.index(lineToCheck),tmpLines.index(line))
                 edgeList.append(edge)
                 weightList.append(matchingAffix)
@@ -58,6 +66,14 @@ def _buildEdges(g:Graph,lines:List[str]) -> Graph:
     g.es["weight"] = weightList
     return g
 
+
+
+# GGATTGG
+# GATTGG
+
+# Boyer-Moore-Algorithmus
+# Knuth-Morris-Pratt-Algorithmus
+# Suffix-Tree
 def _checkSequence(stringA:str, stringB:str) -> int:
     stringLengA = len(stringA)
     v = 0
@@ -85,23 +101,34 @@ def _unifyNodes(data:AssembleData) -> AssembleData:
     # alle höchsten kanten bestimmen
     # wenn > 1, eine zufällige auswählen
     maxWeight = max((value for value in data.graph.es["weight"] if isinstance(value, int)))
-    highestWeightedEdge = data.graph.es.select(weight=maxWeight)[0]
+    maxWeightEdgesList = data.graph.es.select(weight=maxWeight)
+    # Randooooom
+    # highestWeightedEdge = maxWeightEdgesList[randrange(len(maxWeightEdgesList))]
+    # Greedy? letztes
+    # highestWeightedEdge = maxWeightEdgesList[-1]
+    # Greedy? erstes
+    highestWeightedEdge = maxWeightEdgesList[0]
     x = highestWeightedEdge.tuple
     source = data.graph.vs[x[0]]
     target = data.graph.vs[x[1]]
 
     # Neuen Sequence Bauen aus den Selektierten (zusammenführen)
     newSequenceName = source["name"]+target["name"][maxWeight:]
+    data.sequences.append(str(highestWeightedEdge["weight"])+"|"+newSequenceName +" | "+ source["name"]+":"+str(source["label_id"]) +"<-"+target["name"]+":"+str(target["label_id"]))
     source["name"] = newSequenceName
-    data.sequences.append(newSequenceName)
 
     #Graph aufräumen
+    b = list(data.graph.es.select(_source=source))
+    if(len(b)>0):
+        data.graph.delete_edges(b)
     a = data.graph.es.select(_source=target)
     for edge in a:
         if(source.index != edge.target):
             data.graph.add_edge(source.index,edge.target)
             data.graph.es[-1]["weight"] = edge["weight"]
     data.graph.delete_edges(a)
+    
+ 
     data.graph.delete_vertices(target)
    
     return data
@@ -118,20 +145,24 @@ def _saveGraph(data:AssembleData):
     visual_style["layout"] = data.graph.layout("large")
     visual_style["bbox"] = (1000, 1000)
     visual_style["margin"] = 40
-    dirName = "log\\"+data.dataName+"\\"
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
-    plot(data.graph, dirName+"step_"+str(len(data.sequences))+".png" ,**visual_style)
-    
-def _saveSubstrings(data:AssembleData):
-    dirName = "log\\"+data.dataName+"\\"
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
+    dirName = data.dataName+"step_"+str(len(data.sequences))+".png" 
+    plot(data.graph, dirName,**visual_style)
 
-    file = open(dirName+data.dataName+"_sequences.txt", "w")
+def _saveSubstrings(data:AssembleData):
+    file = open(data.dataName+"_sequences.txt", "w")
     for sequence in data.sequences:
         file.write(sequence+"\n") 
     file.close()
 
+def _buildPath(path:str):
+    sourceDataName = path.split("\\")[-1]
+    sourceDataName = sourceDataName.split(".")[0]
+    dirName = "log\\"+sourceDataName
+    if not os.path.exists(dirName):
+        os.makedirs(dirName)
+    numFolders  = len(os.listdir(dirName))
+    dirName = dirName+"\\run_"+str(numFolders)+"_"+date.today().strftime("%d-%m-%Y")+"\\"
+    os.makedirs(dirName)
+    return dirName
 
-main()
+main(1,1)
