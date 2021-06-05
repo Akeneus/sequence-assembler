@@ -59,7 +59,7 @@ def _buildEdges(g:Graph,lines:List[str]) -> Graph:
         linesToCheck = tmpLines.copy()
         linesToCheck.remove(lineToCheck)
         for line in linesToCheck:
-            matchingAffix = _checkSequenceSubst(lineToCheck, line)
+            matchingAffix = _checkSequence(lineToCheck, line)
             if(matchingAffix >= minWeight):
                 edge = (tmpLines.index(lineToCheck),tmpLines.index(line))
                 edgeList.append(edge)
@@ -161,29 +161,5 @@ def _buildPath(path:str):
     dirName = dirName+"\\run_"+str(numFolders)+"_"+date.today().strftime("%d-%m-%Y")+"\\"
     os.makedirs(dirName)
     return dirName
-
-    # ACTGGAT
-#    GCATCCAT
-def _checkSequenceSubst(stringA:str, stringB:str) -> int:
-    stringLengA = len(stringA)
-    stringLengB = len(stringB)
-    v = 0
-    maxFehlerQuoat = _getMaxErrors(max(stringLengA,stringLengB))
-    for i in range(stringLengA):
-        tmp = stringA[i:stringLengA]
-        editDistanz = _getEditDistanze(stringB, tmp)
-        if(editDistanz <= maxFehlerQuoat):
-            return len(tmp)
-    return v
-def _getMaxErrors(stringLen:int):
-    return math.floor(stringLen / 10)+1
-
-def _getEditDistanze(stringB, tmp):
-    edit = 0
-    tmpString = stringB[0:len(tmp)]
-    for i in range(len(tmpString)):
-        if(tmpString[i] != tmp[i]):
-            edit += 1
-    return edit
 
 main(1,1)
