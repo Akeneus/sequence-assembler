@@ -4,6 +4,7 @@ from assemble_data import AssembleData
 from igraph import Graph, plot, os
 from random import randrange
 from datetime import date
+import math
 
 #1. Die einzelnen Fragmente als Knoten in einem Graphen darstellen (check)
 #2a Gewichtete Überlappungskanten bauen, also schauen ob es Überlappungen gibt, diese dann also kante machen und gewicht anzahl der Überlappung bauen (check)
@@ -15,12 +16,13 @@ from datetime import date
 #6 fertig (check)
 # 7 Qualitätskontrolle ?
 # eulerpfad ?
-minWeight = 1
+minWeight = 3
 numberOfIterations = 1
 # ToDo ausführeung durch mitgabe einer frag_b datei in console
 def main(minWeight, numberOfIterations):
     path = "ressource\\frag_a.dat"
     # path = "ressource\\frag_b.dat"
+    # path = "ressource\\frag_c.dat"
     # path = "C:\\Users\\nlens\Documents\\sequenz-assemblerdsfasdfas\\sequence-assembler\\ressource\\frag_c.dat"
     minWeight = minWeight
     numberOfIterations = numberOfIterations
@@ -57,7 +59,7 @@ def _buildEdges(g:Graph,lines:List[str]) -> Graph:
         linesToCheck = tmpLines.copy()
         linesToCheck.remove(lineToCheck)
         for line in linesToCheck:
-            matchingAffix = _checkSequence(lineToCheck, line)
+            matchingAffix = _checkSequenceSubst(lineToCheck, line)
             if(matchingAffix >= minWeight):
                 edge = (tmpLines.index(lineToCheck),tmpLines.index(line))
                 edgeList.append(edge)
@@ -83,6 +85,30 @@ def _checkSequence(stringA:str, stringB:str) -> int:
             return len(tmp)
     return v
 
+
+# ACTGGAT
+#    GCATCCAT
+def _checkSequenceSubst(stringA:str, stringB:str) -> int:
+    stringLengA = len(stringA)
+    stringLengB = len(stringB)
+    v = 0
+    maxFehlerQuoat = _getMaxErrors(max(stringLengA,stringLengB))
+    for i in range(stringLengA):
+        tmp = stringA[i:stringLengA]
+        editDistanz = _getEditDistanze(stringB, tmp)
+        if(editDistanz <= maxFehlerQuoat):
+            return len(tmp)
+    return v
+def _getMaxErrors(stringLen:int):
+    return math.floor(stringLen / 10)+1
+
+def _getEditDistanze(stringB, tmp):
+    edit = 0
+    tmpString = stringB[0:len(tmp)]
+    for i in range(len(tmpString)):
+        if(tmpString[i] != tmp[i]):
+            edit += 1
+    return edit
 
 def _assemble(data:AssembleData):
     # wenn noch kanten da, dann weiter machen!
