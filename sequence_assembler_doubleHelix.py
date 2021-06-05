@@ -184,7 +184,7 @@ def _doubleHelixStuff(lines:list):
 
 def _checkSequenceLR(stringA:str, stringB:str) -> int:
     a = _checkSequence(stringA,stringB)
-    b = _checkSequence(stringB,stringB)
+    b = _checkSequence(stringB,stringA)
     return a+b
 
 def _getComp(stringB:str):
