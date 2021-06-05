@@ -14,9 +14,8 @@ import math
 #4 bereinigen der Kanten (check)
 #5 wieder bei 3 solange es kanten gibt (check)
 #6 fertig (check)
-# 7 Qualitätskontrolle ?
-# eulerpfad ?
-minWeight = 3
+# 7 Qualitätskontrolle (check)
+minWeight = 2
 numberOfIterations = 1
 # ToDo ausführeung durch mitgabe einer frag_b datei in console
 def main(minWeight, numberOfIterations):
@@ -40,9 +39,10 @@ def _buildGraph(path) -> Graph:
     frag_file = open(path, 'r')
     lines = frag_file.readlines()
     lines = [Lines.strip() for Lines in lines] 
+    newLines = _doubleHelixStuff(lines)
     g = Graph(directed= True)
-    g = _buildVertices(g,lines)
-    g = _buildEdges(g,lines)
+    g = _buildVertices(g,newLines)
+    g = _buildEdges(g,newLines)
     return g
 
 def _buildVertices(g:Graph,lines:List[str]) -> Graph:
@@ -59,11 +59,13 @@ def _buildEdges(g:Graph,lines:List[str]) -> Graph:
         linesToCheck = tmpLines.copy()
         linesToCheck.remove(lineToCheck)
         for line in linesToCheck:
-            matchingAffix = _checkSequenceSubst(lineToCheck, line)
+            matchingAffix = _checkSequence(lineToCheck, line)
             if(matchingAffix >= minWeight):
                 edge = (tmpLines.index(lineToCheck),tmpLines.index(line))
                 edgeList.append(edge)
                 weightList.append(matchingAffix)
+
+            
     g.add_edges(edgeList)
     g.es["weight"] = weightList
     return g
@@ -86,30 +88,6 @@ def _checkSequence(stringA:str, stringB:str) -> int:
     return v
 
 
-# ACTGGAT
-#    GCATCCAT
-def _checkSequenceSubst(stringA:str, stringB:str) -> int:
-    stringLengA = len(stringA)
-    stringLengB = len(stringB)
-    v = 0
-    maxFehlerQuoat = _getMaxErrors(max(stringLengA,stringLengB))
-    for i in range(stringLengA):
-        tmp = stringA[i:stringLengA]
-        editDistanz = _getEditDistanze(stringB, tmp)
-        if(editDistanz <= maxFehlerQuoat):
-            return len(tmp)
-    return v
-def _getMaxErrors(stringLen:int):
-    return math.floor(stringLen / 10)+1
-
-def _getEditDistanze(stringB, tmp):
-    edit = 0
-    tmpString = stringB[0:len(tmp)]
-    for i in range(len(tmpString)):
-        if(tmpString[i] != tmp[i]):
-            edit += 1
-    return edit
-
 def _assemble(data:AssembleData):
     # wenn noch kanten da, dann weiter machen!
     count = data.graph.ecount()
@@ -118,10 +96,6 @@ def _assemble(data:AssembleData):
         count = data.graph.ecount()
         _saveGraph(data)
     _saveSubstrings(data)
-
-
-
-
 
 def _unifyNodes(data:AssembleData) -> AssembleData:
     # alle höchsten kanten bestimmen
@@ -190,5 +164,37 @@ def _buildPath(path:str):
     dirName = dirName+"\\run_"+str(numFolders)+"_"+date.today().strftime("%d-%m-%Y")+"\\"
     os.makedirs(dirName)
     return dirName
+
+
+def _doubleHelixStuff(lines:list):
+    newLines = []
+    newLines.append(lines[0])
+    tmpLines = lines.copy()
+    for sequence in tmpLines[1::]:
+        same = 0
+        opp = 0
+        for savedSequence in newLines:
+            same += _checkSequenceLR(savedSequence, sequence)
+            opp += _checkSequenceLR(_getComp(sequence), savedSequence)
+
+        if(same > opp):
+            newLines.append(sequence)
+        else:
+            newLines.append(_getComp(sequence))
+    return newLines
+ 
+
+def _checkSequenceLR(stringA:str, stringB:str) -> int:
+    a = _checkSequence(stringA,stringB)
+    b = _checkSequence(stringB,stringB)
+    return a+b
+
+def _getComp(stringB:str):
+    tmpstring = stringB
+    tmpstring = tmpstring.replace("A","t")
+    tmpstring = tmpstring.replace("T","a")
+    tmpstring = tmpstring.replace("G","c")
+    tmpstring = tmpstring.replace("C","g")
+    return (tmpstring.upper())[::-1]
 
 main(1,1)
