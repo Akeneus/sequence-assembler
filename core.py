@@ -1,7 +1,5 @@
-import re
-
 from typing import List
-from datetime import date
+from datetime import datetime
 from igraph import Graph, plot, os
 
 from assemble_data import AssembleData
@@ -321,15 +319,9 @@ class CoreAssambler:
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
-        num_folders = len(os.listdir(dir_name))
         dir_name = dir_name + "/" \
             + subfolder + "/run_" \
-            + str(num_folders) + "_" \
-            + date.today().strftime("%d-%m-%Y") + "/"
+            + str(datetime.now()) + "/"
         os.makedirs(dir_name)
 
         return dir_name
-
-
-ca = CoreAssambler()
-ca.run()

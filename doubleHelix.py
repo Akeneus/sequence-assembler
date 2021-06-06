@@ -102,7 +102,3 @@ class DoubleHelixAssambler(CoreAssambler):
         res_sequence = res_sequence.replace("C", "g")
 
         return (res_sequence.upper())[::-1]
-
-
-dha = DoubleHelixAssambler()
-dha.run()
