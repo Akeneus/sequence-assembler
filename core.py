@@ -49,7 +49,7 @@ class CoreAssambler:
     @staticmethod
     def _build_graph(path, min_weight) -> Graph:
         """
-        Generates a diagram based on the specified data file
+        Generates a graph based on the specified data file
 
         :param path: Path to the data file
         :return: A graph object based on the datafile
@@ -297,8 +297,8 @@ class CoreAssambler:
         file.close()
 
     # add parameter
-    @staticmethod
-    def _build_path(path: str, subfolder: str = "core"):
+    @classmethod
+    def _build_path(cls, path: str):
         """
         _build_path generates a path where the results shall be
         saved based on where the datafile is located
@@ -315,7 +315,7 @@ class CoreAssambler:
 
         num_folders = len(os.listdir(dir_name))
         dir_name = dir_name + "/" \
-            + subfolder + "/run_" \
+            + str(cls) + "/run_" \
             + str(num_folders) + "_" \
             + date.today().strftime("%d-%m-%Y") + "/"
         os.makedirs(dir_name)
