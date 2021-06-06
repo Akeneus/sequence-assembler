@@ -6,132 +6,217 @@ from random import randrange
 from datetime import date
 import math
 
-#1. Die einzelnen Fragmente als Knoten in einem Graphen darstellen (check)
-#2a Gewichtete Überlappungskanten bauen, also schauen ob es Überlappungen gibt, diese dann also kante machen und gewicht anzahl der Überlappung bauen (check)
-#2b Möglichkeit zu angabe einr mindest Gewichtung
-#3. Verschmelzung der Knoten mit der größten Kante (check)
-#3b. GIERIG die erste Kannte wenn es kannten mit gleicher gewichtung gib (check, aber eventuell random ?)
-#4 bereinigen der Kanten (check)
-#5 wieder bei 3 solange es kanten gibt (check)
-#6 fertig (check)
-# 7 Qualitätskontrolle ?
-# eulerpfad ?
-minWeight = 1
-numberOfIterations = 1
-# ToDo ausführeung durch mitgabe einer frag_b datei in console
-def main(minWeight, numberOfIterations):
-    path = "ressource\\frag_a.dat"
-    # path = "ressource\\frag_b.dat"
-    # path = "ressource\\frag_c.dat"
-    # path = "C:\\Users\\nlens\Documents\\sequenz-assemblerdsfasdfas\\sequence-assembler\\ressource\\frag_c.dat"
-    minWeight = minWeight
-    numberOfIterations = numberOfIterations
-    for i in range(1,numberOfIterations+1):
-        data = _setupData(path)
-        _saveGraph(data)
+
+min_weight = 1
+def main(min_weight, number_of_iterations):
+    """
+    main ist the entrypoint of the sequence-assembler
+    the method starts the initial setUp of the data and then starts the assembleing
+
+    :param min_weight: the minimun weight, which is relevant for building an edge
+    :param number_of_iterations: the umber of exectuions of the the assembler
+    """ 
+    path = "ressource/frag_a.dat"
+    # path = "ressource/frag_b.dat"
+    # path = "ressource/frag_c.dat"
+    min_weight = min_weight
+    for i in range(number_of_iterations):
+        data = _setup_data(path)
+        _save_graph(data)
         _assemble(data)
 
-def _setupData(path) -> AssembleData:
-    g = _buildGraph(path)
-    sourceDataPath = _buildPath(path)
-    return AssembleData(sourceDataPath,g,[])
+def _setup_data(path) -> AssembleData:
+    """
+    _setupData builds the AssembleData object, which is then used in the entiere programm
 
-def _buildGraph(path) -> Graph:
+    :param path: The path, where the datafile is deposited
+    :return: An AssembleData object, which holds all necessary information
+    """ 
+    g = _build_graph(path)
+    source_data_path = _build_path(path)
+    return AssembleData(source_data_path,g,[])
+
+ 
+def _build_graph(path) -> Graph:
+    """
+    _build_graph generates a Graph based on the relevant Datafile
+
+    :param path: The path, where the datafile is deposited
+    :return: A graph object based on the datafile
+    """ 
     frag_file = open(path, 'r')
     lines = frag_file.readlines()
-    lines = [Lines.strip() for Lines in lines] 
-    newLines = _doubleHelixStuff(lines)
-    g = Graph(directed= True)
-    g = _buildVertices(g,newLines)
-    g = _buildEdges(g,newLines)
-    return g
+    sequences = [line.strip() for line in lines] 
+    new_sequences = _rebuild_sequences_considering_double_helix(sequences)
+    graph = Graph(directed= True)
+    graph = _build_vertices(graph,new_sequences)
+    graph = _build_edges(graph,new_sequences)
+    return graph
 
-def _buildVertices(g:Graph,lines:List[str]) -> Graph:
-    g.add_vertices(len(lines))
-    g.vs["name"] = lines
-    g.vs["label_id"] = [i for i in range(len(lines))]
-    return g
+def _build_vertices(graph:Graph,sequences:List[str]) -> Graph:
+    """
+    _build_vertices generates all necessary vertices for the graph and saves them in the object
+    additionally the vertices get the attributes name and label_id, to identify them better
 
-def _buildEdges(g:Graph,lines:List[str]) -> Graph:
-    edgeList = []
-    weightList = []
-    tmpLines = lines.copy()
-    for lineToCheck in tmpLines:
-        linesToCheck = tmpLines.copy()
-        linesToCheck.remove(lineToCheck)
-        for line in linesToCheck:
-            matchingAffix = _checkSequence(lineToCheck, line)
-            if(matchingAffix >= minWeight):
-                edge = (tmpLines.index(lineToCheck),tmpLines.index(line))
-                edgeList.append(edge)
-                weightList.append(matchingAffix)
-    g.add_edges(edgeList)
-    g.es["weight"] = weightList
-    return g
+    :param graph: the current Graph object
+    :param sequences: the list of Sequences based on the input file
+    :return: a Graph with added Vertices based on sequences
+    """ 
+    graph.add_vertices(len(sequences))
+    graph.vs["name"] = sequences
+    graph.vs["label_id"] = [id for id in range(len(sequences))]
+    return graph
 
+def _build_edges(graph:Graph,sequences:List[str]) -> Graph:
+    """
+    _build_edges generate the edges based in the current graph, and the Data file
+    with the given information.
+    The method iterates every Sequence in sequences against all Sequences in the sequence list but itself
+    and starts a check, if it is a prefix of another
 
-
-# GGATTGG
-# GATTGG
+    :param graph: the current Graph object
+    :param sequences: the list of Sequences based on the input file
+    :return: a Graph with added Edges based on sequences
+    """ 
+    l_edges = []
+    l_weights = []
+    l_copy_sequences = sequences.copy()
+    for sequence_to_check in l_copy_sequences:
+        l_sequences_to_check = l_copy_sequences.copy()
+        l_sequences_to_check.remove(sequence_to_check)
+        for sequence_getting_checked in l_sequences_to_check:
+            size_of_matching_prefix = _check_sequence(sequence_to_check, sequence_getting_checked)
+            if(size_of_matching_prefix >= min_weight):
+                new_edge = (l_copy_sequences.index(sequence_to_check),l_copy_sequences.index(sequence_getting_checked))
+                l_edges.append(new_edge)
+                l_weights.append(size_of_matching_prefix)
+    graph.add_edges(l_edges)
+    graph.es["weight"] = l_weights
+    return graph
 
 # Boyer-Moore-Algorithmus
 # Knuth-Morris-Pratt-Algorithmus
 # Suffix-Tree
-def _checkSequence(stringA:str, stringB:str) -> int:
-    stringLengA = len(stringA)
+def _check_sequence(sequence_to_check:str, sequence_getting_checked:str) -> int:
+    """
+    _check_sequence verifys if a subsequence of sequence_to_check is a Prefix of sequence_getting_checked.
+    If that is the case, the lenth of that subsequence is the weight of the edge between these two sequences
+    and this length is returned
+
+    :param sequence_to_check: the sequence which shall be checked to be a prefix
+    :param sequence_getting_checked: the sequence which has a potential prefix
+    :return: the size of the matching prefixstring
+    """ 
+    sequence_to_check_length = len(sequence_to_check)
     v = 0
-    for i in range(stringLengA):
-        tmp = stringA[i:stringLengA]
-        if(stringB.startswith(tmp)):
-            return len(tmp)
+    for start_index in range(sequence_to_check_length):
+        tmp_sub_sequence = sequence_to_check[start_index:sequence_to_check_length]
+        if(sequence_getting_checked.startswith(tmp_sub_sequence)):
+            return len(tmp_sub_sequence)
     return v
 
 def _assemble(data:AssembleData):
+    """
+    _assemble starts the sequence assemble and executes it as long as there are edges left
+
+    :param data: the current AssembleData object, which holds the relevant information
+    """ 
     # wenn noch kanten da, dann weiter machen!
     count = data.graph.ecount()
     while( count!= 0):
-        data = _unifyNodes(data)
+        data = _unify_nodes(data)
         count = data.graph.ecount()
-        _saveGraph(data)
-    _saveSubstrings(data)
+        _save_graph(data)
+    _save_substrings(data)  
 
-def _unifyNodes(data:AssembleData) -> AssembleData:
-    # alle höchsten kanten bestimmen
-    # wenn > 1, eine zufällige auswählen
-    maxWeight = max((value for value in data.graph.es["weight"] if isinstance(value, int)))
-    maxWeightEdgesList = data.graph.es.select(weight=maxWeight)
+def _unify_nodes(data:AssembleData) -> AssembleData:
+    """
+    _unify_nodes starts the methods to combine the information of two Vertices and to redirect or delte affected edges
+
+    :param data: the current AssembleData object, which holds the relevant information
+    :return: the changed graph object
+    """ 
+    selected_edge = _select_highest_weighted_edge(data)
+    _rename_merged_vertice(data,selected_edge)
+    _refactor_graph(data,selected_edge)
+    return data
+
+def _select_highest_weighted_edge(data:AssembleData):
+    """
+    _select_highest_weighted_edge searches all edges with the highest weight and returns one of them
+
+    :param data: the current AssembleData object, which holds the relevant information
+    :return: An Edge with the current highest weight
+    """ 
+    #  find highest weight
+    current_highest_weight = max((value for value in data.graph.es["weight"] if isinstance(value, int)))
+    # find all edges with the highest weight
+    l_heighest_weighted_edges = data.graph.es.select(weight=current_highest_weight)
+
+    #TODO
     # Randooooom
     # highestWeightedEdge = maxWeightEdgesList[randrange(len(maxWeightEdgesList))]
     # Greedy? letztes
     # highestWeightedEdge = maxWeightEdgesList[-1]
     # Greedy? erstes
-    highestWeightedEdge = maxWeightEdgesList[0]
-    x = highestWeightedEdge.tuple
-    source = data.graph.vs[x[0]]
-    target = data.graph.vs[x[1]]
+    selected_edge = l_heighest_weighted_edges[0]
+    return selected_edge
 
-    # Neuen Sequence Bauen aus den Selektierten (zusammenführen)
-    newSequenceName = source["name"]+target["name"][maxWeight:]
-    data.sequences.append(str(highestWeightedEdge["weight"])+"|"+newSequenceName +" | "+ source["name"]+":"+str(source["label_id"]) +"<-"+target["name"]+":"+str(target["label_id"]))
-    source["name"] = newSequenceName
+def _rename_merged_vertice(data,selected_edge):
+    """
+    _rename_merged_vertice renames the Vertices which is the Source of the an given edge
 
-    #Graph aufräumen
-    b = list(data.graph.es.select(_source=source))
-    if(len(b)>0):
-        data.graph.delete_edges(b)
-    a = data.graph.es.select(_source=target)
-    for edge in a:
-        if(source.index != edge.target):
-            data.graph.add_edge(source.index,edge.target)
-            data.graph.es[-1]["weight"] = edge["weight"]
-    data.graph.delete_edges(a)
+    :param data: the current AssembleData object, which holds the relevant information
+    :return: An Edge with the current highest weight
+    """
+
+    # select the vertice at the source of the selected_edge
+    source_vertice = data.graph.vs[selected_edge.source]
+
+    # select the vertice at the target of the selected_edge
+    target_vertice = data.graph.vs[selected_edge.target]
     
- 
-    data.graph.delete_vertices(target)
-   
-    return data
+    # merges the name of the target_vertie into the source_vertiec, but only the subsequencce which is not equal
+    merged_sequence_name = source_vertice["name"]+target_vertice["name"][selected_edge["weight"]:]
+    source_vertice["name"] = merged_sequence_name
+    #TODO
+    data.sequences.append(str(selected_edge["weight"])+"|"+merged_sequence_name +" | "+ source_vertice["name"]+":"+str(source_vertice["label_id"]) +"<-"+target_vertice["name"]+":"+str(target_vertice["label_id"]))
 
-def _saveGraph(data:AssembleData):
+def _refactor_graph(data,selected_edge):
+    """
+    _refactor_graph refactors the affected parth of the graph after the unifycation
+
+    :param data: the current AssembleData object, which holds the relevant information
+    :return: the Edge with the current highest weight
+    """ 
+    # select the vertice at the source of the selected_edge
+    source_vertice = data.graph.vs[selected_edge.source]
+
+    # select the vertice at the target of the selected_edge
+    target_vertice = data.graph.vs[selected_edge.target]
+
+    # select and then delete all edges which have the soure_vertice as source itself, since the Source vertice gets deleted later
+    l_edges_to_delete_with_old_source = list(data.graph.es.select(_source=source_vertice))
+    if(len(l_edges_to_delete_with_old_source)>0):
+        data.graph.delete_edges(l_edges_to_delete_with_old_source)
+    
+    # select and then redirect the edges which have the target_vertice as source, 
+    # since these edges have the the same word ending, and hence the edge only needs redirection
+    l_edges_to_redirect = data.graph.es.select(_source=target_vertice)
+    for edge in l_edges_to_redirect:
+        # ignore edges on it self
+        if(source_vertice.index != edge.target):
+            data.graph.add_edge(source_vertice.index,edge.target)
+            data.graph.es[-1]["weight"] = edge["weight"]
+    data.graph.delete_edges(l_edges_to_redirect) 
+    data.graph.delete_vertices(target_vertice)
+
+def _save_graph(data:AssembleData):
+    """
+    _save_graph saves a snapshot of the current Graph 
+
+    :param data: the current AssembleData object, which holds the relevant information
+    """ 
     visual_style = {}
     visual_style["vertex_shape"] = 'circle'
     visual_style["vertex_size"] = 30
@@ -143,56 +228,90 @@ def _saveGraph(data:AssembleData):
     visual_style["layout"] = data.graph.layout("large")
     visual_style["bbox"] = (1000, 1000)
     visual_style["margin"] = 40
-    dirName = data.data_name+"step_"+str(len(data.sequences))+".png" 
-    plot(data.graph, dirName,**visual_style)
+    dir_name = data.data_name+"step_"+str(len(data.sequences))+".png" 
+    plot(data.graph, dir_name,**visual_style)
 
-def _saveSubstrings(data:AssembleData):
+def _save_substrings(data:AssembleData):
+    """
+    _save_substrings saves all build substrings into a textfile
+
+    :param data: the current AssembleData object, which holds the relevant information
+    """ 
     file = open(data.data_name+"_sequences.txt", "w")
     for sequence in data.sequences:
         file.write(sequence+"\n") 
     file.close()
 
-def _buildPath(path:str):
-    sourceDataName = path.split("\\")[-1]
-    sourceDataName = sourceDataName.split(".")[0]
-    dirName = "log\\"+sourceDataName
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
-    numFolders  = len(os.listdir(dirName))
-    dirName = dirName+"\\run_"+str(numFolders)+"_"+date.today().strftime("%d-%m-%Y")+"\\"
-    os.makedirs(dirName)
-    return dirName
+def _build_path(path:str):
+    """
+    _build_path generates a path where the results shall be saved based on where the Datafile is located
 
+    :param path: The path, where the datafile is deposited
+    :return: the path to a directory where the results are saved
+    """ 
+    source_data_name = path.split("/")[-1]
+    source_data_name = source_data_name.split(".")[0]
+    dir_name = "log/"+source_data_name
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+    num_folders  = len(os.listdir(dir_name))
+    dir_name = dir_name+"/run_"+str(num_folders)+"_"+date.today().strftime("%d-%m-%Y")+"/"
+    os.makedirs(dir_name)
+    return dir_name
 
-def _doubleHelixStuff(lines:list):
-    newLines = []
-    newLines.append(lines[0])
-    tmpLines = lines.copy()
-    for sequence in tmpLines[1::]:
+def _rebuild_sequences_considering_double_helix(l_sequences:list):
+    
+    """
+    _rebuild_sequences_considering_double_helix considers the data to be from a double helix and determins from which strand the sequences are.
+    Considering this, the datalist is rebuild with potential complement sequences
+
+    :param l_sequences: original data List
+    :return: new Data list
+    """ 
+    l_new_sequences = []
+    l_new_sequences.append(l_sequences[0])
+    l_copy_sequences = l_sequences.copy()
+    for sequence in l_copy_sequences[1::]:
         same = 0
         opp = 0
-        for savedSequence in newLines:
-            same += _checkSequenceLR(savedSequence, sequence)
-            opp += _checkSequenceLR(_getComp(sequence), savedSequence)
+        for saved_sequence in l_new_sequences:
+            same += _check_both_Sequences(saved_sequence, sequence)
+            opp += _check_both_Sequences(_get_complement_sequence(sequence), saved_sequence)
 
         if(same > opp):
-            newLines.append(sequence)
+            l_new_sequences.append(sequence)
         else:
-            newLines.append(_getComp(sequence))
-    return newLines
+            l_new_sequences.append(_get_complement_sequence(sequence))
+    return l_new_sequences
  
 
-def _checkSequenceLR(stringA:str, stringB:str) -> int:
-    a = _checkSequence(stringA,stringB)
-    b = _checkSequence(stringB,stringA)
-    return a+b
+def _check_both_Sequences(sequence_one:str, sequnece_two:str) -> int:
+    
+    """
+    _check_Sequence_left_and_right checks the weight of the two sequences to each other and adds them
 
-def _getComp(stringB:str):
-    tmpstring = stringB
-    tmpstring = tmpstring.replace("A","t")
-    tmpstring = tmpstring.replace("T","a")
-    tmpstring = tmpstring.replace("G","c")
-    tmpstring = tmpstring.replace("C","g")
-    return (tmpstring.upper())[::-1]
+    :param sequence_one: 
+    :param sequnece_two:
+    :return: the added weights 
+    """ 
+    weight_one = _check_sequence(sequence_one,sequnece_two)
+    weight_two = _check_sequence(sequnece_two,sequence_one)
+    return weight_one+weight_two
+
+def _get_complement_sequence(sequence:str) -> str:
+    
+    """
+    _get_complement_sequence builds the complement sequence to a given sequence
+    the complement is defined as a reversed version where every base is changed to its complement base
+
+    :param sequence: the sequence to build the complement of
+    :return: the complement version of a sequence
+    """
+    res_sequence = sequence
+    res_sequence = res_sequence.replace("A","t")
+    res_sequence = res_sequence.replace("T","a")
+    res_sequence = res_sequence.replace("G","c")
+    res_sequence = res_sequence.replace("C","g")
+    return (res_sequence.upper())[::-1]
 
 main(1,1)
