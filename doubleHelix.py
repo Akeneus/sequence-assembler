@@ -5,6 +5,12 @@ from core import CoreAssambler
 
 class DoubleHelixAssambler(CoreAssambler):
 
+    def __init__(self,
+                 path="ressource/frag_a.dat",
+                 min_weight=1,
+                 subfolder="DoubleHelixAssambler"):
+        super().__init__(path, min_weight, subfolder)
+
     @staticmethod
     def _build_graph(path, min_weight) -> Graph:
         """

@@ -1,12 +1,18 @@
+import re
+
 from typing import List
 from datetime import date
 from igraph import Graph, plot, os
+
 from assemble_data import AssembleData
 
 
 class CoreAssambler:
 
-    def __init__(self, path="ressource/frag_a.dat", min_weight=1):
+    def __init__(self,
+                 path="ressource/frag_a.dat",
+                 min_weight=1,
+                 subfolder="CoreAssambler"):
         """
         Entry point for the basic sequence assembler it initializes the
         data and starts the assemble process
@@ -18,6 +24,7 @@ class CoreAssambler:
 
         self.min_weight = min_weight
         self.path = path
+        self.subfolder = subfolder
 
     def run(self, iterations=1):
         """
@@ -27,22 +34,23 @@ class CoreAssambler:
         """
 
         for i in range(iterations):
-            data = self._setup_data(self.path, self.min_weight)
+            data = self._setup_data(self.path, self.min_weight, self.subfolder)
             self._save_graph(data)
             self._assemble(data)
 
     @staticmethod
-    def _setup_data(path: str, min_weight) -> AssembleData:
+    def _setup_data(path: str, min_weight, subfolder) -> AssembleData:
         """
         Builds the AssembleData object that contains the state
             of the assemble process
 
         :param path: Path to the data file
+        :param subfolder: Name for the created subfolder
         :return: AssembleData object, representing the initial data
         """
 
         graph = CoreAssambler._build_graph(path, min_weight)
-        source_data_path = CoreAssambler._build_path(path)
+        source_data_path = CoreAssambler._build_path(path, subfolder)
 
         return AssembleData(source_data_path, graph, [])
 
@@ -283,6 +291,7 @@ class CoreAssambler:
         if not dis_plot:
             plot(data.graph, dir_name, **visual_style)
 
+    @staticmethod
     def _save_substrings(data: AssembleData):
         """
         Saves all build substrings into a textfile
@@ -296,9 +305,8 @@ class CoreAssambler:
             file.write(sequence + "\n")
         file.close()
 
-    # add parameter
-    @classmethod
-    def _build_path(cls, path: str):
+    @staticmethod
+    def _build_path(path: str, subfolder: str):
         """
         _build_path generates a path where the results shall be
         saved based on where the datafile is located
@@ -315,7 +323,7 @@ class CoreAssambler:
 
         num_folders = len(os.listdir(dir_name))
         dir_name = dir_name + "/" \
-            + str(cls) + "/run_" \
+            + subfolder + "/run_" \
             + str(num_folders) + "_" \
             + date.today().strftime("%d-%m-%Y") + "/"
         os.makedirs(dir_name)
