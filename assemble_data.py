@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from igraph import Graph
 
@@ -9,3 +9,4 @@ class AssembleData:
     data_path: str
     graph: Graph
     sequences: List[str]
+    last_merge: str = field(default='')

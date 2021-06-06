@@ -1,9 +1,9 @@
 from igraph import Graph
 
-from core import CoreAssambler
+from core import CoreAssembler
 
 
-class DoubleHelixAssambler(CoreAssambler):
+class DoubleHelixAssembler(CoreAssembler):
 
     def __init__(self,
                  path="ressource/frag_a.dat",
@@ -11,8 +11,7 @@ class DoubleHelixAssambler(CoreAssambler):
                  subfolder="DoubleHelixAssambler"):
         super().__init__(path, min_weight, subfolder)
 
-    @staticmethod
-    def _build_graph(path, min_weight) -> Graph:
+    def _build_graph(self, path, min_weight) -> Graph:
         """
         Generates a graph for DoubleHelixAssambler based on the
         specified data file
@@ -24,11 +23,11 @@ class DoubleHelixAssambler(CoreAssambler):
         frag_file = open(path, 'r')
         lines = frag_file.readlines()
         sequences = [line.strip() for line in lines]
-        new_sequences = DoubleHelixAssambler \
-            ._rebuild_sequences_for_double_helix(sequences)
+        new_sequences = self \
+            ._rebuild_sequences_considering_double_helix(sequences)
         graph = Graph(directed=True)
-        graph = DoubleHelixAssambler._build_vertices(graph, new_sequences)
-        graph = DoubleHelixAssambler._build_edges(
+        graph = self._build_vertices(graph, new_sequences)
+        graph = self._build_edges(
             graph,
             new_sequences,
             min_weight
@@ -36,8 +35,7 @@ class DoubleHelixAssambler(CoreAssambler):
 
         return graph
 
-    @staticmethod
-    def _rebuild_sequences_considering_double_helix(l_sequences: list):
+    def _rebuild_sequences_considering_double_helix(self, l_sequences: list):
         """
         Assumes that the data are from a double helix and determines from which
         strand the sequences are. Taking this into account, rebuilds the data
@@ -53,26 +51,23 @@ class DoubleHelixAssambler(CoreAssambler):
             same = 0
             opp = 0
             for saved_sequence in l_new_sequences:
-                same += DoubleHelixAssambler._check_both_Sequences(
+                same += self._check_both_sequences(
                     saved_sequence,
-                    sequence
-                )
-                opp += DoubleHelixAssambler._check_both_Sequences(
-                    DoubleHelixAssambler._get_complement_sequence(sequence),
-                    saved_sequence
-                )
+                    sequence)
+                opp += self._check_both_sequences(
+                    self._get_complement_sequence(sequence),
+                    saved_sequence)
 
             if(same > opp):
                 l_new_sequences.append(sequence)
             else:
                 l_new_sequences.append(
-                    DoubleHelixAssambler._get_complement_sequence(sequence)
+                    self._get_complement_sequence(sequence)
                 )
 
         return l_new_sequences
 
-    @staticmethod
-    def _check_both_sequences(first: str, second: str) -> int:
+    def _check_both_sequences(self, first: str, second: str) -> int:
         """
         Checks the weight of the two sequences to each other
         and adds them
@@ -81,12 +76,12 @@ class DoubleHelixAssambler(CoreAssambler):
         :param sequnece_two: second sequence
         :return: the added weights
         """
-        weight_one = DoubleHelixAssambler._check_sequence(first, second)
-        weight_two = DoubleHelixAssambler._check_sequence(second, first)
+        weight_one = self._check_sequence(first, second)
+        weight_two = self._check_sequence(second, first)
 
         return weight_one + weight_two
 
-    def _get_complement_sequence(sequence: str) -> str:
+    def _get_complement_sequence(self, sequence: str) -> str:
         """
         Forms the complementary sequence to a given sequence. The complement is
         defined as an inverted version where each base is converted to its

@@ -1,9 +1,9 @@
 import math
 
-from core import CoreAssambler
+from core import CoreAssembler
 
 
-class SubstitutionAssambler(CoreAssambler):
+class SubstitutionAssembler(CoreAssembler):
 
     def __init__(self,
                  path="ressource/frag_a.dat",
@@ -11,8 +11,7 @@ class SubstitutionAssambler(CoreAssambler):
                  subfolder="SubsitutionAssambler"):
         super().__init__(path, min_weight, subfolder)
 
-    @staticmethod
-    def _check_sequence(first: str, second: str) -> int:
+    def _check_sequence(self, first: str, second: str) -> int:
         """
         Verifys if a subsequence of first is a prefix of second
         while considering possible subsitutions. If there is a
@@ -25,11 +24,11 @@ class SubstitutionAssambler(CoreAssambler):
         first_len = len(first)
         second_len = len(second)
         v = 0
-        max_error_quoat = SubstitutionAssambler._get_max_error_quota(
+        max_error_quoat = self._get_max_error_quota(
             max(first_len, second_len))
         for i in range(first_len):
             current_subsequence = first[i:first_len]
-            edit_dist = SubstitutionAssambler._get_edit_distanze(
+            edit_dist = self._get_edit_distanze(
                 second,
                 current_subsequence,
             )
@@ -38,8 +37,7 @@ class SubstitutionAssambler(CoreAssambler):
 
         return v
 
-    @staticmethod
-    def _get_max_error_quota(stringLen: int) -> int:
+    def _get_max_error_quota(self, stringLen: int) -> int:
         """
         Calculates the max errors, which a sequence is allowed to have,
         since it is allowed to have 1 error in every 10 chars of a sequence
@@ -50,8 +48,7 @@ class SubstitutionAssambler(CoreAssambler):
 
         return math.ceil(stringLen / 10)
 
-    @staticmethod
-    def _get_edit_distanze(first, second):
+    def _get_edit_distanze(self, first, second):
         """
         Calculates the edit distance between two strings (only substitution!)
 

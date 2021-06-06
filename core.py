@@ -2,14 +2,16 @@ from typing import List
 from datetime import datetime
 from igraph import Graph, plot, os
 
+import random
+
 from assemble_data import AssembleData
 
 
-class CoreAssambler:
+class CoreAssembler:
 
     def __init__(self,
                  path="ressource/frag_a.dat",
-                 min_weight=1,
+                 min_weight=3,
                  subfolder="CoreAssambler"):
         """
         Entry point for the basic sequence assembler it initializes the
@@ -31,13 +33,19 @@ class CoreAssambler:
         :param number_of_iterations: Number of exectuions
         """
 
-        for i in range(iterations):
-            data = self._setup_data(self.path, self.min_weight, self.subfolder)
-            self._save_graph(data)
-            self._assemble(data)
+        final_result = None
 
-    @staticmethod
-    def _setup_data(path: str, min_weight, subfolder) -> AssembleData:
+        for i in range(iterations):
+            self.data = self._setup_data(self.path, self.min_weight, self.subfolder)
+            self._save_graph(self, self.data)
+            self._assemble(self, self.data)
+
+            if final_result is None or len(final_result) > len(self.data.last_merge):
+                final_result = self.data.last_merge
+
+        return final_result
+
+    def _setup_data(self, path: str, min_weight, subfolder) -> AssembleData:
         """
         Builds the AssembleData object that contains the state
             of the assemble process
@@ -47,13 +55,12 @@ class CoreAssambler:
         :return: AssembleData object, representing the initial data
         """
 
-        graph = CoreAssambler._build_graph(path, min_weight)
-        source_data_path = CoreAssambler._build_path(path, subfolder)
+        graph = self._build_graph(path, min_weight)
+        source_data_path = self._build_path(path, subfolder)
 
         return AssembleData(source_data_path, graph, [])
 
-    @staticmethod
-    def _build_graph(path, min_weight) -> Graph:
+    def _build_graph(self, path, min_weight) -> Graph:
         """
         Generates a graph based on the specified data file
 
@@ -65,13 +72,12 @@ class CoreAssambler:
         lines = frag_file.readlines()
         sequences = [line.strip() for line in lines]
         graph = Graph(directed=True)
-        graph = CoreAssambler._build_vertices(graph, sequences)
-        graph = CoreAssambler._build_edges(graph, sequences, min_weight)
+        graph = self._build_vertices(graph, sequences)
+        graph = self._build_edges(graph, sequences, min_weight)
 
         return graph
 
-    @staticmethod
-    def _build_vertices(graph: Graph, sequences: List[str]) -> Graph:
+    def _build_vertices(self, graph: Graph, sequences: List[str]) -> Graph:
         """
         Adds all necessary vertices to the graph
         All vertices contain "name" and "label_id" for easy identification
@@ -86,8 +92,7 @@ class CoreAssambler:
         graph.vs["label_id"] = [id for id in range(len(sequences))]
         return graph
 
-    @staticmethod
-    def _build_edges(graph: Graph, sequences: List[str], min_weight) -> Graph:
+    def _build_edges(self, graph: Graph, sequences: List[str], min_weight) -> Graph:
         """
         Adds edges to the graph, based on the specified sequences. It iterates
         over every Sequence in sequences for each Sequence in sequences
@@ -105,7 +110,7 @@ class CoreAssambler:
             l_sequences_to_check = l_copy_sequences.copy()
             l_sequences_to_check.remove(sequence_to_check)
             for sequence_getting_checked in l_sequences_to_check:
-                size_of_matching_prefix = CoreAssambler._check_sequence(
+                size_of_matching_prefix = self._check_sequence(
                         sequence_to_check,
                         sequence_getting_checked,
                     )
@@ -124,8 +129,7 @@ class CoreAssambler:
     # Boyer-Moore-Algorithmus
     # Knuth-Morris-Pratt-Algorithmus
     # Suffix-Tree
-    @staticmethod
-    def _check_sequence(first: str, second: str) -> int:
+    def _check_sequence(self, first: str, second: str) -> int:
         """
         Verifys if a subsequence of first is a prefix of second.
         If there is a prefix its length is returned
@@ -144,7 +148,7 @@ class CoreAssambler:
         return v
 
     @staticmethod
-    def _assemble(data: AssembleData):
+    def _assemble(self, data: AssembleData):
         """
         Starts the sequence assemble and executes it as long as
         there are edges left
@@ -154,13 +158,12 @@ class CoreAssambler:
 
         count = data.graph.ecount()
         while(count != 0):
-            data = CoreAssambler._unify_nodes(data)
+            data = self._unify_nodes(data)
             count = data.graph.ecount()
-            CoreAssambler._save_graph(data)
-        CoreAssambler._save_substrings(data)
+            self._save_graph(data)
+        self._save_substrings(data)
 
-    @staticmethod
-    def _unify_nodes(data: AssembleData) -> AssembleData:
+    def _unify_nodes(self, data: AssembleData) -> AssembleData:
         """
         Combines the information of two vertices and to redirect or
         delete affected edges
@@ -169,14 +172,13 @@ class CoreAssambler:
         :return: reduced AssembleData object
         """
 
-        selected_edge = CoreAssambler._select_highest_weighted_edge(data)
-        CoreAssambler._rename_merged_vertice(data, selected_edge)
-        CoreAssambler._refactor_graph(data, selected_edge)
+        selected_edge = self._select_highest_weighted_edge(data)
+        self._rename_merged_vertice(data, selected_edge)
+        self._refactor_graph(data, selected_edge)
 
         return data
 
-    @staticmethod
-    def _select_highest_weighted_edge(data: AssembleData):
+    def _select_highest_weighted_edge(self, data: AssembleData):
         """
         Searches all edges for the heighest edge weight and retruns one
 
@@ -195,10 +197,9 @@ class CoreAssambler:
         )
 
         # TODO optimize
-        return l_heighest_weighted_edges[0]
+        return random.choice(l_heighest_weighted_edges)
 
-    @staticmethod
-    def _rename_merged_vertice(data, selected_edge):
+    def _rename_merged_vertice(self, data, selected_edge):
         """
         Renames the Vertices which is the Source of the given edge
 
@@ -227,11 +228,11 @@ class CoreAssambler:
             + target_vertice["name"] + ":"
             + str(target_vertice["label_id"])
         )
+        data.last_merge = merged_sequence_name
 
         return data
 
-    @staticmethod
-    def _refactor_graph(data, selected_edge):
+    def _refactor_graph(self, data, selected_edge):
         """
         Refactors the affected parth of the graph after unifycations
 
@@ -267,8 +268,7 @@ class CoreAssambler:
 
         return data
 
-    @staticmethod
-    def _save_graph(data: AssembleData, dis_plot=False):
+    def _save_graph(self, data: AssembleData, dis_plot=False):
         """
         Saves a raster graphic of the current graph
 
@@ -279,18 +279,17 @@ class CoreAssambler:
         visual_style = {}
         visual_style["vertex_shape"] = 'circle'
         visual_style["vertex_size"] = 30
-        visual_style["vertex_label"] = data.graph.vs["name"]
-        visual_style["edge_label"] = data.graph.es["weight"]
-        visual_style["layout"] = data.graph.layout("large")
+        visual_style["vertex_label"] = self.data.graph.vs["name"]
+        visual_style["edge_label"] = self.data.graph.es["weight"]
+        visual_style["layout"] = self.data.graph.layout("large")
         visual_style["bbox"] = (1000, 1000)
         visual_style["margin"] = 40
-        dir_name = data.data_path + "step_" + str(len(data.sequences)) + ".png"
+        dir_name = self.data.data_path + "step_" + str(len(self.data.sequences)) + ".png"
 
         if not dis_plot:
             plot(data.graph, dir_name, **visual_style)
 
-    @staticmethod
-    def _save_substrings(data: AssembleData):
+    def _save_substrings(self, data: AssembleData):
         """
         Saves all build substrings into a textfile
 
@@ -303,8 +302,7 @@ class CoreAssambler:
             file.write(sequence + "\n")
         file.close()
 
-    @staticmethod
-    def _build_path(path: str, subfolder: str):
+    def _build_path(self, path: str, subfolder: str):
         """
         _build_path generates a path where the results shall be
         saved based on where the datafile is located
