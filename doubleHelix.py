@@ -16,7 +16,7 @@ import math
 #6 fertig (check)
 # 7 Qualitätskontrolle ?
 # eulerpfad ?
-minWeight = 3
+minWeight = 1
 numberOfIterations = 1
 # ToDo ausführeung durch mitgabe einer frag_b datei in console
 def main(minWeight, numberOfIterations):
@@ -40,9 +40,10 @@ def _buildGraph(path) -> Graph:
     frag_file = open(path, 'r')
     lines = frag_file.readlines()
     lines = [Lines.strip() for Lines in lines] 
+    newLines = _doubleHelixStuff(lines)
     g = Graph(directed= True)
-    g = _buildVertices(g,lines)
-    g = _buildEdges(g,lines)
+    g = _buildVertices(g,newLines)
+    g = _buildEdges(g,newLines)
     return g
 
 def _buildVertices(g:Graph,lines:List[str]) -> Graph:
@@ -161,5 +162,37 @@ def _buildPath(path:str):
     dirName = dirName+"\\run_"+str(numFolders)+"_"+date.today().strftime("%d-%m-%Y")+"\\"
     os.makedirs(dirName)
     return dirName
+
+
+def _doubleHelixStuff(lines:list):
+    newLines = []
+    newLines.append(lines[0])
+    tmpLines = lines.copy()
+    for sequence in tmpLines[1::]:
+        same = 0
+        opp = 0
+        for savedSequence in newLines:
+            same += _checkSequenceLR(savedSequence, sequence)
+            opp += _checkSequenceLR(_getComp(sequence), savedSequence)
+
+        if(same > opp):
+            newLines.append(sequence)
+        else:
+            newLines.append(_getComp(sequence))
+    return newLines
+ 
+
+def _checkSequenceLR(stringA:str, stringB:str) -> int:
+    a = _checkSequence(stringA,stringB)
+    b = _checkSequence(stringB,stringA)
+    return a+b
+
+def _getComp(stringB:str):
+    tmpstring = stringB
+    tmpstring = tmpstring.replace("A","t")
+    tmpstring = tmpstring.replace("T","a")
+    tmpstring = tmpstring.replace("G","c")
+    tmpstring = tmpstring.replace("C","g")
+    return (tmpstring.upper())[::-1]
 
 main(1,1)
