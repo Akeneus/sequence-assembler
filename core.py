@@ -6,7 +6,7 @@ from datetime import date
 from igraph import Graph, plot, os
 from assemble_data import AssembleData
 
-minWeight = 1
+min_weight = 1
 def main(min_weight, number_of_iterations):
     """
     main ist the entrypoint of the sequence-assembler
@@ -83,7 +83,7 @@ def _build_edges(graph:Graph,sequences:List[str]) -> Graph:
         l_sequences_to_check.remove(sequence_to_check)
         for sequence_getting_checked in l_sequences_to_check:
             size_of_matching_prefix = _check_sequence(sequence_to_check, sequence_getting_checked)
-            if(size_of_matching_prefix >= minWeight):
+            if(size_of_matching_prefix >= min_weight):
                 new_edge = (l_copy_sequences.index(sequence_to_check),l_copy_sequences.index(sequence_getting_checked))
                 l_edges.append(new_edge)
                 l_weights.append(size_of_matching_prefix)
