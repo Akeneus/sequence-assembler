@@ -15,8 +15,8 @@ def main(min_weight, number_of_iterations):
     :param min_weight: the minimun weight, which is relevant for building an edge
     :param number_of_iterations: the umber of exectuions of the the assembler
     """ 
-    path = "ressource/frag_a.dat"
-    # path = "ressource/frag_b.dat"
+    # path = "ressource/frag_a.dat"
+    path = "ressource/frag_b.dat"
     # path = "ressource/frag_c.dat"
     min_weight = min_weight
     for i in range(number_of_iterations):
@@ -225,8 +225,27 @@ def _save_graph(data:AssembleData):
     visual_style["layout"] = data.graph.layout("large")
     visual_style["bbox"] = (1000, 1000)
     visual_style["margin"] = 40
-    dir_name = data.data_name+"step_"+str(len(data.sequences))+".png" 
+    dir_name = data.data_path+"step_"+str(len(data.sequences))+".png" 
     plot(data.graph, dir_name,**visual_style)
+    _writeToGraphizFile(data)
+
+
+def _writeToGraphizFile(data:AssembleData):
+    file = open(data.data_path+"graphviz_step_"+str(len(data.sequences))+".txt", "w")
+    file.write("graph g {\n")
+    for vertice in data.graph.vs:
+        file.write("\""+str(vertice.index)+"\""+"[\n")
+        file.write("label=\""+vertice["name"]+"\"\n")
+        file.write("];\n")
+
+    for edge in data.graph.es:
+        file.write("\""+str(edge.source)+"\"--\""+str(edge.target)+"\"[\n")
+        file.write("dir = \"forward\""+"\n")
+        file.write("label=\""+str(edge["weight"])+"\"\n")
+        file.write("];\n")
+    file.write("\n}")
+    file.close()
+
 
 def _save_substrings(data:AssembleData):
     """
@@ -234,7 +253,7 @@ def _save_substrings(data:AssembleData):
 
     :param data: the current AssembleData object, which holds the relevant information
     """ 
-    file = open(data.data_name+"_sequences.txt", "w")
+    file = open(data.data_path+"_sequences.txt", "w")
     for sequence in data.sequences:
         file.write(sequence+"\n") 
     file.close()

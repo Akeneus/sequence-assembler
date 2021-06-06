@@ -228,7 +228,7 @@ def _save_graph(data:AssembleData):
     visual_style["layout"] = data.graph.layout("large")
     visual_style["bbox"] = (1000, 1000)
     visual_style["margin"] = 40
-    dir_name = data.data_name+"step_"+str(len(data.sequences))+".png" 
+    dir_name = data.data_path+"step_"+str(len(data.sequences))+".png" 
     plot(data.graph, dir_name,**visual_style)
 
 def _save_substrings(data:AssembleData):
@@ -237,7 +237,7 @@ def _save_substrings(data:AssembleData):
 
     :param data: the current AssembleData object, which holds the relevant information
     """ 
-    file = open(data.data_name+"_sequences.txt", "w")
+    file = open(data.data_path+"_sequences.txt", "w")
     for sequence in data.sequences:
         file.write(sequence+"\n") 
     file.close()
