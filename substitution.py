@@ -125,7 +125,7 @@ def _select_highest_weighted_edge(data:AssembleData):
     :param data: the current AssembleData object, which holds the relevant information
     :return: An Edge with the current highest weight
     """ 
-    #  find highest weight
+    # find highest weight
     current_highest_weight = max((value for value in data.graph.es["weight"] if isinstance(value, int)))
     # find all edges with the highest weight
     l_heighest_weighted_edges = data.graph.es.select(weight=current_highest_weight)

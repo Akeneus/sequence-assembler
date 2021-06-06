@@ -11,10 +11,11 @@ As already proposed by [Google Python Style Guide](https://google.github.io/styl
 
 
 
-# ToDp
+# ToDo
 - Qualitätskontrolle ?
 - ausführeung durch mitgabe einer frag_b datei in console
-- Graph schön machen
-- WAH!
 - Überall Drüber lesen ob ich mehr kommentieren soll
-- \_check\_sequence coooooler machen
+- Package wrapen so dass ausführbar
+- WAH!
+- (Graph schön machen)
+- (\_check\_sequence coooooler machen)
