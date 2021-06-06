@@ -10,3 +10,11 @@ As a reference style guide, the [Google Python Style Guide](https://google.githu
 As already proposed by [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) this project uses [docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)  to document the source-code
 
 
+
+# ToDp
+- Qualitätskontrolle ?
+- ausführeung durch mitgabe einer frag_b datei in console
+- Graph schön machen
+- WAH!
+- Überall Drüber lesen ob ich mehr kommentieren soll
+- \_check\_sequence coooooler machen

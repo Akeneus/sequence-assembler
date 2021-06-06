@@ -51,22 +51,6 @@ def _buildVertices(g:Graph,lines:List[str]) -> Graph:
     g.vs["label_id"] = [i for i in range(len(lines))]
     return g
 
-def _buildEdges(g:Graph,lines:List[str]) -> Graph:
-    edgeList = []
-    weightList = []
-    tmpLines = lines.copy()
-    for lineToCheck in tmpLines:
-        linesToCheck = tmpLines.copy()
-        linesToCheck.remove(lineToCheck)
-        for line in linesToCheck:
-            matchingAffix = _checkSequenceSubst(lineToCheck, line)
-            if(matchingAffix >= minWeight):
-                edge = (tmpLines.index(lineToCheck),tmpLines.index(line))
-                edgeList.append(edge)
-                weightList.append(matchingAffix)
-    g.add_edges(edgeList)
-    g.es["weight"] = weightList
-    return g
 
 
 
@@ -142,11 +126,11 @@ def _saveGraph(data:AssembleData):
     visual_style["layout"] = data.graph.layout("large")
     visual_style["bbox"] = (1000, 1000)
     visual_style["margin"] = 40
-    dirName = data.dataName+"step_"+str(len(data.sequences))+".png" 
+    dirName = data.data_name+"step_"+str(len(data.sequences))+".png" 
     plot(data.graph, dirName,**visual_style)
 
 def _saveSubstrings(data:AssembleData):
-    file = open(data.dataName+"_sequences.txt", "w")
+    file = open(data.data_name+"_sequences.txt", "w")
     for sequence in data.sequences:
         file.write(sequence+"\n") 
     file.close()
@@ -161,6 +145,23 @@ def _buildPath(path:str):
     dirName = dirName+"\\run_"+str(numFolders)+"_"+date.today().strftime("%d-%m-%Y")+"\\"
     os.makedirs(dirName)
     return dirName
+    
+def _buildEdges(g:Graph,lines:List[str]) -> Graph:
+    edgeList = []
+    weightList = []
+    tmpLines = lines.copy()
+    for lineToCheck in tmpLines:
+        linesToCheck = tmpLines.copy()
+        linesToCheck.remove(lineToCheck)
+        for line in linesToCheck:
+            matchingAffix = _checkSequenceSubst(lineToCheck, line)
+            if(matchingAffix >= minWeight):
+                edge = (tmpLines.index(lineToCheck),tmpLines.index(line))
+                edgeList.append(edge)
+                weightList.append(matchingAffix)
+    g.add_edges(edgeList)
+    g.es["weight"] = weightList
+    return g
 
     # ACTGGAT
 #    GCATCCAT
