@@ -12,10 +12,10 @@ As already proposed by [Google Python Style Guide](https://google.github.io/styl
 
 
 # ToDo
-- Qualitätskontrolle ?
-- ausführeung durch mitgabe einer frag_b datei in console
 - Überall Drüber lesen ob ich mehr kommentieren soll
-- Package wrapen so dass ausführbar
+- ausführeung durch mitgabe einer frag_b datei in console
+- Package/exe wrapen so dass ausführbar
+- Qualitätskontrolle ?
 - WAH!
 - (Graph schön machen)
 - (\_check\_sequence coooooler machen)
