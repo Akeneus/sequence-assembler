@@ -8,8 +8,9 @@ class DoubleHelixAssembler(CoreAssembler):
     def __init__(self,
                  path="ressource/frag_a.dat",
                  min_weight=1,
-                 subfolder="DoubleHelixAssambler"):
-        super().__init__(path, min_weight, subfolder)
+                 subfolder="DoubleHelixAssambler",
+                 plot_flag=False):
+        super().__init__(path, min_weight, subfolder, plot_flag=plot_flag)
 
     def _build_graph(self, path, min_weight) -> Graph:
         """

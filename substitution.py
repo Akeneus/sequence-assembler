@@ -8,8 +8,9 @@ class SubstitutionAssembler(CoreAssembler):
     def __init__(self,
                  path="ressource/frag_a.dat",
                  min_weight=1,
-                 subfolder="SubsitutionAssambler"):
-        super().__init__(path, min_weight, subfolder)
+                 subfolder="SubsitutionAssambler",
+                 plot_flag=False):
+        super().__init__(path, min_weight, subfolder, plot_flag=plot_flag)
 
     def _check_sequence(self, first: str, second: str) -> int:
         """

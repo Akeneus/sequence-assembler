@@ -12,7 +12,8 @@ class CoreAssembler:
     def __init__(self,
                  path="ressource/frag_a.dat",
                  min_weight=3,
-                 subfolder="CoreAssambler"):
+                 subfolder="CoreAssambler",
+                 plot_flag=False):
         """
         Entry point for the basic sequence assembler it initializes the
         data and starts the assemble process
@@ -25,6 +26,7 @@ class CoreAssembler:
         self.min_weight = min_weight
         self.path = path
         self.subfolder = subfolder
+        self.plot_flag = plot_flag
 
     def run(self, iterations=1):
         """
@@ -37,11 +39,15 @@ class CoreAssembler:
 
         for i in range(iterations):
             self.data = self._setup_data(self.path, self.min_weight, self.subfolder)
-            self._save_graph(self, self.data)
-            self._assemble(self, self.data)
+            self._save_graph(self.data)
+            self._assemble(self.data)
 
-            if final_result is None or len(final_result) > len(self.data.last_merge):
-                final_result = self.data.last_merge
+            result = []
+            for vertice in self.data.graph.vs:
+                result.append(vertice["name"])
+
+            if final_result is None or len(final_result) > len(result):
+                final_result = result
 
         return final_result
 
@@ -147,7 +153,6 @@ class CoreAssembler:
                 return len(tmp_sub_sequence)
         return v
 
-    @staticmethod
     def _assemble(self, data: AssembleData):
         """
         Starts the sequence assemble and executes it as long as
@@ -268,7 +273,7 @@ class CoreAssembler:
 
         return data
 
-    def _save_graph(self, data: AssembleData, dis_plot=False):
+    def _save_graph(self, data: AssembleData):
         """
         Saves a raster graphic of the current graph
 
@@ -284,10 +289,15 @@ class CoreAssembler:
         visual_style["layout"] = self.data.graph.layout("large")
         visual_style["bbox"] = (1000, 1000)
         visual_style["margin"] = 40
-        dir_name = self.data.data_path + "step_" + str(len(self.data.sequences)) + ".png"
+        dir_base = self.data.data_path
+        step = "step_" + str(len(self.data.sequences))
+        if self.plot_flag:
+            plot(data.graph,
+                 dir_base + step + ".png",
+                 **visual_style)
 
-        if not dis_plot:
-            plot(data.graph, dir_name, **visual_style)
+        self._write_to_graphiz_file(dir_base)
+
 
     def _save_substrings(self, data: AssembleData):
         """
@@ -323,3 +333,19 @@ class CoreAssembler:
         os.makedirs(dir_name)
 
         return dir_name
+
+    def _write_to_graphiz_file(self, dir):
+        file = open(dir+"/graphvizstep"+str(len(self.data.sequences))+".txt", "w")
+        file.write("graph g {\n")
+        for vertice in self.data.graph.vs:
+            file.write('"' + str(vertice.index) + '"' + "[\n")
+            file.write('label="' + vertice["name"] + '"\n')
+            file.write("];\n")
+
+        for edge in self.data.graph.es:
+            file.write('"' + str(edge.source)+'"--"' + str(edge.target)+'"[\n')
+            file.write('dir = "forward"' + "\n")
+            file.write('label="' + str(edge["weight"])+'"\n')
+            file.write("];\n")
+        file.write("\n}")
+        file.close()
