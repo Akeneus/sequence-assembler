@@ -329,7 +329,7 @@ class CoreAssembler:
 
         dir_name = dir_name + "/" \
             + subfolder + "/run_" \
-            + str(datetime.now()) + "/"
+            + str(datetime.now()).replace(":","_") + "/"
         os.makedirs(dir_name)
 
         return dir_name
